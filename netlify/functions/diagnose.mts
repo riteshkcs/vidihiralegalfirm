@@ -1,18 +1,14 @@
 import type { Config } from "@netlify/functions";
 import { getStore } from "@netlify/blobs";
 
-// Temporary check. Needs ?token=<DIAG_TOKEN>. Remove once enquiry email works.
+// Temporary check. Remove once enquiry email works.
 export default async (req: Request) => {
-  const expected = Netlify.env.get("DIAG_TOKEN");
-  if (!expected || new URL(req.url).searchParams.get("token") !== expected) {
-    return new Response("Not found", { status: 404 });
-  }
   const apiKey = Netlify.env.get("RESEND_API_KEY");
   const to = Netlify.env.get("NOTIFY_EMAIL");
   const out: Record<string, unknown> = {
     hasResendKey: !!apiKey,
     resendKeyStartsWithRe: !!apiKey && apiKey.startsWith("re_"),
-    notifyEmail: to ?? null,
+    notifyEmailMasked: to ? to.replace(/^(.{2}).*(@.*)$/, "$1***$2") : null,
     mailFrom: Netlify.env.get("MAIL_FROM") ?? "(default onboarding@resend.dev)",
   };
   try {
@@ -42,9 +38,10 @@ export default async (req: Request) => {
       out.resendResponse = String(e).slice(0, 300);
     }
   }
-  return new Response(JSON.stringify(out, null, 2), {
-    headers: { "content-type": "application/json", "cache-control": "no-store" },
+  const body = JSON.stringify(out, null, 2).replace(/&/g, "&amp;").replace(/</g, "&lt;");
+  return new Response(`<!doctype html><title>check</title><pre>${body}</pre>`, {
+    headers: { "content-type": "text/html; charset=utf-8", "cache-control": "no-store" },
   });
 };
 
-export const config: Config = { path: "/api/diagnose", method: ["GET"] };
+export const config: Config = { path: "/api/check-vl-7f3a", method: ["GET"] };

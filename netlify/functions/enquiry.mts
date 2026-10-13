@@ -46,7 +46,7 @@ async function sendNotification(entry: Record<string, string>, id: string) {
     console.error("Email not configured: set RESEND_API_KEY and NOTIFY_EMAIL.");
     return false;
   }
-  const from = Netlify.env.get("MAIL_FROM") || "Vidhira Legal <onboarding@resend.dev>";
+  const from = Netlify.env.get("MAIL_FROM") || "Vidhira Legal <no-reply@vidhiralegal.in>";
   const rows: [string, string][] = [
     ["Name", entry.name],
     ["Email", entry.email],

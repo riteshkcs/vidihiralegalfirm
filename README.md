@@ -11,6 +11,6 @@ The enquiry is saved before the email is attempted, so nothing is lost if email 
 |---|---|---|
 | `RESEND_API_KEY` | yes | API key from resend.com (scope: Functions) |
 | `NOTIFY_EMAIL` | yes | Address that receives enquiries |
-| `MAIL_FROM` | no | e.g. `Vidhira Legal <enquiries@vidhiralegal.in>` once the domain is verified in Resend. Defaults to `onboarding@resend.dev`. |
+| `MAIL_FROM` | no | Sender. Defaults to `Vidhira Legal <no-reply@vidhiralegal.in>` (domain verified in Resend). |
 
 Never commit these values. Change them, then redeploy for the change to apply.

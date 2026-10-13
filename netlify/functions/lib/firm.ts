@@ -21,10 +21,12 @@ export const FIRM = {
   name: "Vidhira Legal",
   website: "https://vidhiralegal.in",
   email: "",      // e.g. "nihaika@vidhiralegal.in"
-  phone: "",      // e.g. "+91 98xxxxxxx"
+  phone: "+91 73998 99994",
   address: "",
   hours: "",      // e.g. "Mon-Sat, 10am-6pm IST"
-  lawyers: [] as Lawyer[],
+  lawyers: [
+    { name: "Niharika Singh", role: "Lawyer", note: "Contact: +91 73998 99994" },
+  ] as Lawyer[],
 };
 
 /**

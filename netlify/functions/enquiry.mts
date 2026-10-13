@@ -97,7 +97,7 @@ export default async (req: Request) => {
   // Spam traps: a hidden field real visitors never fill, and a form that was submitted too fast.
   if (clean(input?.website, 200)) return json({ ok: true });
   const elapsed = Number(input?.elapsedMs);
-  if (Number.isFinite(elapsed) && elapsed < 2500) return json({ ok: true });
+  if (Number.isFinite(elapsed) && elapsed < 1200) return json({ ok: true });
 
   const { data, errors } = validate(input);
   if (errors.length) return json({ ok: false, errors }, 400);

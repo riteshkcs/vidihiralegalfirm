@@ -14,3 +14,20 @@ The enquiry is saved before the email is attempted, so nothing is lost if email 
 | `MAIL_FROM` | no | Sender. Defaults to `Vidhira Legal <no-reply@vidhiralegal.in>` (domain verified in Resend). |
 
 Never commit these values. Change them, then redeploy for the change to apply.
+
+## AI Legal Assistant (`/assistant/`)
+
+Claude-style chat page in the site theme. The browser calls `POST /api/chat` (`netlify/functions/chat.mts`), which adds the
+system prompt and streams the answer from the OpenAI API. The API key never reaches the browser.
+
+| Name | Required | Value |
+|---|---|---|
+| `OPENAI_API_KEY` | yes | OpenAI API key (mark as secret, scope: Functions) |
+| `CHAT_MODEL` | no | OpenAI model id. Defaults to `gpt-4.1`. |
+| `ADMIN_TOKEN` | no | Secret you choose; lets you read feedback at `GET /api/feedback` with header `x-admin-token`. |
+
+- **Lawyer / firm details** the chat may share: edit `netlify/functions/lib/firm.ts`. The assistant only shares what is listed there.
+- **Improving answers:** visitors can rate answers; ratings (with that question and answer) are saved to the `chat-feedback` Blobs store.
+  Add verified corrections to `KNOWLEDGE` in `firm.ts` and redeploy.
+- **Consultation:** when someone asks for a lawyer, the chat shows a form that posts to `/api/enquiry`, so it arrives by email like any other enquiry.
+- Rate limit: 40 messages per visitor per hour.

@@ -177,6 +177,7 @@ export default async (req: Request, context: Context) => {
     const hint: Record<string, string> = {
       invalid_api_key: "The assistant's API key was rejected.",
       insufficient_quota: "The assistant's OpenAI account has no credit or quota.",
+      credit_balance_exhausted: "The assistant's OpenAI account has no credit left.",
       model_not_found: "The selected AI model is not available on this account.",
       rate_limit_exceeded: "The assistant is busy. Please try again in a moment.",
     };

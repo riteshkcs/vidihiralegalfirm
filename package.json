@@ -1,0 +1,11 @@
+{
+  "name": "vidhira-legal-website",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Vidhira Legal website with an enquiry backend on Netlify Functions",
+  "dependencies": {
+    "@netlify/blobs": "^8.1.0",
+    "@netlify/functions": "^3.0.0"
+  }
+}

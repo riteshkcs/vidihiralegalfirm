@@ -143,26 +143,48 @@ export default async (req: Request, context: Context) => {
     return json({ error: "You have reached the hourly limit for this assistant. Please try again later, or send an enquiry to the firm." }, 429);
   }
 
-  const upstream = await fetch("https://api.openai.com/v1/chat/completions", {
-    method: "POST",
-    headers: {
-      "content-type": "application/json",
-      authorization: `Bearer ${apiKey}`,
-    },
-    body: JSON.stringify({
-      model: Netlify.env.get("CHAT_MODEL") || MODEL_DEFAULT,
-      max_completion_tokens: MAX_TOKENS,
-      messages: [{ role: "system", content: buildSystem() }, ...messages],
-      stream: true,
-    }),
-  });
+  const call = (model: string) =>
+    fetch("https://api.openai.com/v1/chat/completions", {
+      method: "POST",
+      headers: { "content-type": "application/json", authorization: `Bearer ${apiKey}` },
+      body: JSON.stringify({
+        model,
+        max_completion_tokens: MAX_TOKENS,
+        messages: [{ role: "system", content: buildSystem() }, ...messages],
+        stream: true,
+      }),
+    });
+
+  const models = [Netlify.env.get("CHAT_MODEL") || MODEL_DEFAULT, "gpt-4o-mini"];
+  let upstream = await call(models[0]);
+  let errCode = "";
+  if (!upstream.ok) {
+    let detail = await upstream.text().catch(() => "");
+    try { errCode = JSON.parse(detail)?.error?.code || JSON.parse(detail)?.error?.type || ""; } catch { /* ignore */ }
+    console.error("OpenAI error", upstream.status, models[0], detail.slice(0, 500));
+    // Model not available to this account: try a widely available one.
+    if ((upstream.status === 404 || upstream.status === 400 || errCode === "model_not_found") && models[1] !== models[0]) {
+      upstream = await call(models[1]);
+      if (!upstream.ok) {
+        detail = await upstream.text().catch(() => "");
+        try { errCode = JSON.parse(detail)?.error?.code || JSON.parse(detail)?.error?.type || errCode; } catch { /* ignore */ }
+        console.error("OpenAI fallback error", upstream.status, models[1], detail.slice(0, 500));
+      }
+    }
+  }
 
   if (!upstream.ok || !upstream.body) {
-    const detail = await upstream.text().catch(() => "");
-    console.error("OpenAI error", upstream.status, detail.slice(0, 500));
-    const busy = upstream.status === 429 || upstream.status >= 500;
+    const hint: Record<string, string> = {
+      invalid_api_key: "The assistant's API key was rejected.",
+      insufficient_quota: "The assistant's OpenAI account has no credit or quota.",
+      model_not_found: "The selected AI model is not available on this account.",
+      rate_limit_exceeded: "The assistant is busy. Please try again in a moment.",
+    };
     return json(
-      { error: busy ? "The assistant is busy. Please try again in a moment." : "The assistant could not answer just now. Please try again." },
+      {
+        error: (hint[errCode] || "The assistant could not answer just now. Please try again.") + (errCode ? ` (ref: ${errCode})` : ` (ref: http ${upstream.status})`),
+        code: errCode || String(upstream.status),
+      },
       502,
     );
   }
